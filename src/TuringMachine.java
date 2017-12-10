@@ -15,13 +15,12 @@ public class TuringMachine {
     private List<String> tapeAlphabet;
     private List<Transition> transitions;
     private String blankSymbol;
-    private Tape tape;
-    private boolean deadlock;
     private int numberOfTapes;
     private int cycle = 0;
     private List<Tape> tapes;
     private List<TransitionList> listTapeTransition;
     private List<String> inputTapeContent;
+    private List<Boolean> canDoTransition = new ArrayList<>();
     public boolean debug;
 
 
@@ -30,41 +29,43 @@ public class TuringMachine {
         this.inputTapeContent = inputTapeContent;
         loadMachine(contents);
 
-
         for (String input : inputTapeContent) {
-            if (validateInput(input)) {
-                List<State> endStates = getEndStates(getInitialState().get(0));
-
-                System.out.println("========================================================");
-                System.out.println("Finalizado:");
-
-                boolean foundGoalState = false;
-                for (State s : endStates) {
-                    if (s.isGoal()) {
-                        System.out.println("Palavra aceita!");
-                        System.out.println("Estado atual: " + s.getState());
-                        foundGoalState = true;
-                    }
-                }
-
-                if (!foundGoalState) {
-                    System.out.println("Palavra não aceita!");
-                    System.out.print("Estados atuais: ");
-                    for (State s : endStates) {
-                        System.out.print(s.getState());
-                        System.out.print(" ");
-                    }
-                }
-
-                System.out.println("========================================================");
-                System.out.println("Fitas: ");
-                for (Tape t : getTapes()) {
-                    System.out.println("Fita [" + t.getTapeNumber() + "]:");
-                    t.printTape();
-                }
-            } else {
-                System.out.println("Palavra inválida.");
+            if (!validateInput(input)) {
+                System.out.println("ERRO: Existe algum símbolo na(s) fita(s) não presente em seu alfabeto!");
+                System.exit(0);
             }
+            else {
+                System.out.println("Símbolos da fita válidos");
+            }
+        }
+
+        System.out.println("========================================================");
+        System.out.println("Finalizado");
+
+        List<State> endStates = runTM(getInitialState().get(0));
+        boolean foundGoalState = false;
+        for (State s : endStates) {
+            if (s.isGoal()) {
+                System.out.println("Palavra aceita!");
+                System.out.println("Estado atual: " + s.getState());
+                foundGoalState = true;
+            }
+        }
+
+        if (!foundGoalState) {
+            System.out.println("Palavra não aceita!");
+            System.out.print("Estados atuais: ");
+            for (State s : endStates) {
+                System.out.print(s.getState());
+                System.out.print(" ");
+            }
+        }
+
+        //System.out.println("========================================================");
+        System.out.println("Fitas: ");
+        for (Tape t : getTapes()) {
+            System.out.println("Fita [" + t.getTapeNumber() + "]:");
+            //t.printTape();
         }
     }
 
@@ -133,17 +134,29 @@ public class TuringMachine {
         }
 
         // Line 7 Number of Tapes
-        //numberOfTapes = Integer.parseInt(split[6].trim());
+        numberOfTapes = Integer.parseInt(contents.get(6));
         tapes = new ArrayList<>();
+        for (int i = 0 ; i < numberOfTapes ; i++) {
+            if (debug) {
+                System.out.println("Creating tape: " + i);
+            }
+            tapes.add(new Tape(inputTapeContent.get(i), blankSymbol, i));
+        }
 
         // Line 8-EOF Transitions
         transitions = new ArrayList<>();
         listTapeTransition = new ArrayList<>();
 
+        if (debug) {
+            System.out.println("Start Transitions");
+        }
+
         for (int i = 7 ; i < contents.size() ; i++) {
             String line[] = contents.get(i).split(" ");
 
             if (debug) {
+                System.out.println("Transitions for: " + i);
+                System.out.println("line.length: " + line.length);
                 for (String s : line) {
                     //System.out.println(s);
                 }
@@ -152,10 +165,19 @@ public class TuringMachine {
             State originState = new State(line[0], isInitialState(line[0]), isGoalState(line[0]));
             State destinyState = new State(line[1], isInitialState(line[0]), isGoalState(line[0]));
 
+            if (debug) {
+                System.out.println(inputTapeContent);
+                System.out.println("tapes.size(): " + tapes.size());
+            }
+
             int j = 2;
             int currentTape = 0;
-            while (j < line[j].length()) {
-                System.out.println("Fita: " + currentTape);
+            while (j < line.length) {
+                if (debug) {
+                    System.out.println("==========");
+                    System.out.println("While: " + j);
+                    System.out.println("Fita: " + currentTape);
+                }
                 String oldSymbol = line[j];
                 j++;
                 String newSymbol = line[j];
@@ -163,16 +185,9 @@ public class TuringMachine {
                 String move = line[j];
                 j++;
 
-                if (debug) {
-                    System.out.println("===");
-                    System.out.println(inputTapeContent);
-                    System.out.println("tapes.size(): " + tapes.size());
-                }
-
-                tapes.add(new Tape(inputTapeContent.get(currentTape), blankSymbol, currentTape));
+                //tapes.add(new Tape(inputTapeContent.get(currentTape), blankSymbol, currentTape));
 
                 if (debug) {
-                    System.out.println("tapes.size(): " + tapes.size());
                     System.out.println("originState: " + originState.getState());
                     System.out.println("destinyState: " + destinyState.getState());
                     System.out.println("oldSymbol: " + oldSymbol);
@@ -183,14 +198,13 @@ public class TuringMachine {
 
                 tapes.get(currentTape).addTransition(new Transition(originState, destinyState, oldSymbol, newSymbol, move, currentTape));
                 currentTape++;
-
-                if (debug) {
-                    System.out.println("===");
-                    System.out.println(tapes.size());
-                }
                 //listTapeTransition.add(new TransitionList(j));
                 //listTapeTransition.get(j).addTransition(new Transition(originState, destinyState, oldSymbol, newSymbol, move));
             }
+        }
+
+        if (debug) {
+            System.out.println("End Transitions");
         }
 
         for (State state : states) {
@@ -256,11 +270,21 @@ public class TuringMachine {
         */
     }
 
-    public List<State> getEndStates(State s) {
+    public List<State> runTM(State s) {
         List<State> current = new ArrayList<>();
         List<State> next = new ArrayList<>();
         current.add(s);
         cycle = -1;
+
+        if (debug) {
+            System.out.println("********************************************************");
+            System.out.println("*               STARTING TURING MACHINE                *");
+            System.out.println("********************************************************");
+        }
+
+        for (int i = 0 ; i < numberOfTapes ; i++) {
+            canDoTransition.add(false);
+        }
 
         boolean foundGoalState = false;
         while (!foundGoalState) {
@@ -270,16 +294,28 @@ public class TuringMachine {
                 }
             }
 
+            for (int i = 0 ; i < numberOfTapes ; i++) {
+                canDoTransition.set(i, false);
+            }
+
             for (Tape t : tapes) {
-                String tapeSymbol = t.getTape().get(t.getCurrentPosition());
                 for (State c : current) {
-                    for (Transition transition : c.getTransitions()) {
-                        if (transition.getOldSymbol().equals(tapeSymbol) && !next.contains(transition.getDestinyState())) {
-                            next.add(transition.getDestinyState());
-                            t.write(transition.getNewSymbol(), transition.getMove());
-                            System.out.println("Símbolo antigo: " + transition.getOldSymbol() + " Símbolo novo: " + transition.getNewSymbol());
+                    for (Transition transition : t.getTransitions()) {
+                        if (transition.getOldSymbol().equals(t.getTape().get(t.getCurrentPosition())) && c.getState().equals(transition.getOriginState().getState()) && !next.contains(transition.getDestinyState())) {
+                            canDoTransition.set(t.getTapeNumber(), true);
+                            t.setActualTransition(transition);
                         }
                     }
+                }
+            }
+
+            if (checkBooleanArray(canDoTransition)) {
+                next.add(tapes.get(0).getActualTransition().getDestinyState());
+
+                System.out.println("Estado atual: " + tapes.get(0).getActualTransition().getOriginState().getState() + " Estado destino: " + tapes.get(0).getActualTransition().getDestinyState().getState());
+                for (Tape taps : tapes) {
+                    taps.write(taps.getActualTransition().getNewSymbol(), taps.getActualTransition().getMove());
+                    System.out.println("Fita: " + taps.getTapeNumber() + " Simbolo antigo: " + taps.getActualTransition().getOldSymbol() + " Símbolo novo: " + taps.getActualTransition().getNewSymbol() + " Movimento: " + taps.getActualTransition().getMove());
                 }
             }
 
@@ -306,6 +342,15 @@ public class TuringMachine {
             */
         }
         return current;
+    }
+
+    public Boolean checkBooleanArray(List<Boolean> bool) {
+        for (boolean b : bool) {
+            if (!b) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean isGoalState(String state) {

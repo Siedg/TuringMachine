@@ -13,6 +13,7 @@ public class Tape {
     private List<Transition> transitions;
     private String tapeContent;
     private int tapeNumber;
+    private Transition actualTransition;
 
     public Tape(String tapeContent, String blankSymbol, int tapeNumber) {
         this.tapeContent = tapeContent;
@@ -125,6 +126,14 @@ public class Tape {
 
     public void setTransitions(List<Transition> transitions) {
         this.transitions = transitions;
+    }
+
+    public Transition getActualTransition() {
+        return actualTransition;
+    }
+
+    public void setActualTransition(Transition actualTransition) {
+        this.actualTransition = actualTransition;
     }
 
 }
