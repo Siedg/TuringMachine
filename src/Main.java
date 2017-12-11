@@ -8,7 +8,9 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         boolean debug = true;
-        String path = "Testes/3tape-automaton-sameABCnumber.txt";
+        //String path = "Testes/3tape-automaton-sameABCnumber.txt";
+        String path = "Testes/ex9-2tape-substring.txt";
+        //String path = "Testes/ex9.5fix-b.txt";
         List<String> fileContents = new File().readFile(path);
         TuringMachine tm;
         Scanner scanner = new Scanner(System.in);
@@ -17,9 +19,9 @@ public class Main {
 
 
         List<String> tapesContent = new ArrayList<>();
-        tapesContent.add("aabbcc");
-        tapesContent.add("B");
-        tapesContent.add("B");
+        tapesContent.add("aa");
+        tapesContent.add("aa");
+
 
         tm = new TuringMachine(fileContents, tapesContent, debug);
         /*

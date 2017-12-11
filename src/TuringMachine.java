@@ -216,7 +216,7 @@ public class TuringMachine {
             }
             transitionNumber++;
         }
-/*
+
         if (debug) {
             System.out.println("End Transitions");
 
@@ -234,20 +234,6 @@ public class TuringMachine {
             }
         }
 
-*/
-
-        for (State state : states) {
-            for (Tape tape : tapes) {
-                for (Transition trans : tape.getTransitions()) {
-                    if (trans.getOriginState().getState().equals(state.getState())) {
-                        if (!state.getTransitions().contains(trans)) {
-                            state.addTransition(trans);
-                        }
-                    }
-                }
-            }
-        }
-       /*
         for (State state : states) {
             for (Tape tape : tapes) {
                 for (Transition trans : tape.getTransitions()) {
@@ -259,7 +245,7 @@ public class TuringMachine {
                 }
             }
         }
-*/
+
         if (debug) {
             System.out.println("=============================");
             System.out.println("states transitions");
@@ -311,19 +297,21 @@ public class TuringMachine {
             setFalseBooleanArray(canDoTransition);
 
             for (State c : current) {
+                setFalseBooleanArray(canDoTransition);
+                setNullTapeTransition(tapes);
                 System.out.print("current = ");
-                for (State sta : current) {
-                    System.out.print(sta.getState() + " ");
-                }
                 for (Tape tape : tapes) {
                     for (Transition tTransition : tape.getTransitions()) {
                         for (int i = 0 ; i < transitionNumber ; i++) {
                             if (i == tTransition.getTransitionNumber()) {
+                                System.out.println("primeiro");
                                 if (c.getState().equals(tTransition.getOriginState().getState())) {
+                                    System.out.println("segundo");
                                     if (tTransition.getOldSymbol().equals(tape.getTape().get(tape.getCurrentPosition()))) {
+                                        System.out.println("terceiro " + i + " " + tape.getTapeNumber());
                                         tape.setActualTransition(tTransition);
                                         canDoTransition.set(tape.getTapeNumber(), true);
-                                        break;
+
                                     }
                                 }
                             }
@@ -336,7 +324,7 @@ public class TuringMachine {
                             next.add(tapes.get(0).getActualTransition().getDestinyState());
                         }
                         System.out.println("Estado atual: " + tapes.get(0).getActualTransition().getOriginState().getState() + " | Estado destino: " + tapes.get(0).getActualTransition().getDestinyState().getState());
-                        for (Tape taps : c.getCurrentTape()) {
+                        for (Tape taps : tapes) {
                             taps.write(taps.getActualTransition().getNewSymbol(), taps.getActualTransition().getMove());
                             System.out.println("***********************************************************************");
                             System.out.println("Fita [" + taps.getTapeNumber() + "] | Simbolo antigo: " + taps.getActualTransition().getOldSymbol() + " | Símbolo novo: " + taps.getActualTransition().getNewSymbol() + " | Movimento: " + taps.getActualTransition().getMove());
@@ -352,8 +340,6 @@ public class TuringMachine {
                             System.out.println(sta.getState());
                         }
                     }
-                    setFalseBooleanArray(canDoTransition);
-                    setNullTapeTransition(tapes);
                 }
             }
             System.out.println("Next States: ");
