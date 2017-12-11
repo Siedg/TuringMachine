@@ -26,7 +26,7 @@ public class TuringMachine {
     private int transitionNumber = 0;
     private int cycle = -1;
     private int maxCycles = 100;
-    private int maxTapeSize = 50;
+    private int maxTapeSize = 100;
     public boolean debug;
 
 

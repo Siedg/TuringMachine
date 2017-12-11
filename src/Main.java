@@ -20,7 +20,7 @@ public class Main {
         if (args.length >= 2) {
             try {
                 path = args[0];
-                for (int i = 1 ; i <= args.length ; i++) {
+                for (int i = 1 ; i < args.length ; i++) {
                     tapesContent.add(args[i]);
                 }
             } catch (Exception e) {
@@ -33,7 +33,5 @@ public class Main {
 
         List<String> fileContents = new File().readFile(path);
         tm = new TuringMachine(fileContents, tapesContent, debug);
-
-
     }
 }
