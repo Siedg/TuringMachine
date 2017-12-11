@@ -4,7 +4,7 @@ import java.util.List;
 /**
  * Created by Siedg on 24/11/2017.
  */
-public class State {
+public class State implements Cloneable {
     private String state;
     private List<Transition> transitions;
     private boolean isInitial;
@@ -16,6 +16,15 @@ public class State {
         this.isInitial = isInitial;
         this.isGoal = isGoal;
         this.transitions = new ArrayList<>();
+    }
+
+    @Override
+    public State clone() {
+        try {
+            return (State) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean finalState(State state, String oldSymbol, String newSymbol, String move) {

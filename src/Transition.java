@@ -1,7 +1,7 @@
 /**
  * Created by Siedg on 24/11/2017.
  */
-public class Transition {
+public class Transition implements Cloneable {
     private State destinyState;
     private State originState;
     private String oldSymbol;
@@ -20,6 +20,14 @@ public class Transition {
         this.transitionNumber = transitionNumber;
     }
 
+    @Override
+    public Transition clone() {
+        try {
+            return (Transition) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public void print() {
         System.out.println("Origem: " + this.originState.getState() + " " + "Destino: " + this.destinyState.getState() + " " + "Símbolo atual: " + this.getOldSymbol() + " " + "Símbolo novo: " + this.getNewSymbol() + " " + "Movimento: " + this.getMove());
     }

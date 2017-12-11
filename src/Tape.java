@@ -6,7 +6,7 @@ import static java.rmi.Naming.list;
 /**
  * Created by Siedg on 24/11/2017.
  */
-public class Tape {
+public class Tape implements Cloneable {
     private ArrayList<String> tape;
     private int currentPosition;
     private String blankSymbol;
@@ -23,6 +23,15 @@ public class Tape {
         this.tapeNumber = tapeNumber;
         transitions = new ArrayList<>();
         fillTape();
+    }
+
+    @Override
+    public Tape clone() {
+        try {
+            return (Tape) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // Write symbol on current tape.

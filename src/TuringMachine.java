@@ -1,7 +1,10 @@
 import javafx.collections.transformation.TransformationList;
 
 import javax.xml.bind.SchemaOutputResolver;
+import java.awt.image.AreaAveragingScaleFilter;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,7 +24,11 @@ public class TuringMachine {
     private List<String> inputTapeContent;
     private List<Boolean> canDoTransition = new ArrayList<>();
     private int transitionNumber = 0;
+    private int cycle = -1;
+    private int maxCycles = 100;
+    private int maxTapeSize = 200;
     public boolean debug;
+
 
 
     public TuringMachine(List<String> contents, List<String> inputTapeContent, boolean debug) {
@@ -269,7 +276,22 @@ public class TuringMachine {
     public List<State> runTM(State s) {
         List<State> current = new ArrayList<>();
         List<State> next = new ArrayList<>();
+        List<Tape> currentTapes = new ArrayList<>();
+        List<ThreadTransition> threadTransition = new ArrayList<>();
+        int id = threadTransition.size();
         current.add(s);
+        currentTapes.addAll(tapes);
+        System.out.println("-- " + current.size() + " " + next.size() + " " + currentTapes.size() + " --");
+        ArrayList<State> c1 = new ArrayList<State>();
+        c1.addAll(current);
+        ArrayList<State> n1 = new ArrayList<State>();
+        n1.addAll(next);
+        ArrayList<Tape> t1 = new ArrayList<Tape>();
+        t1.addAll(currentTapes);
+
+        threadTransition.add(new ThreadTransition(c1, n1, t1, threadTransition.size()));
+        System.out.println("-- " + threadTransition.get(threadTransition.size() - 1).getCurrent().size() + " " + threadTransition.get(threadTransition.size() - 1).getNext().size() + " " + threadTransition.get(threadTransition.size() - 1).getCurrentTapes().size() + " --");
+
 
         System.out.println("********************************************************");
         System.out.println("*               STARTING TURING MACHINE                *");
@@ -288,71 +310,120 @@ public class TuringMachine {
 
         boolean foundGoalState = false;
         while (!foundGoalState) {
-            for (State state : current) {
-                if (isGoalState(state.getState())) {
-                    return current;
-                }
+            cycle++;
+            if (checkDeadlock()) {
+                return current;
             }
+            while (!threadTransition.isEmpty()) {
+                int tId = threadTransition.size() - 1;
+                current.clear();
+                next.clear();
+                currentTapes.clear();
 
-            setFalseBooleanArray(canDoTransition);
+                for (State state : threadTransition.get(tId).getCurrent()) {
+                    current = new ArrayList<State>();
+                    current.add(state.clone());
+                }
+                for (Tape tape : threadTransition.get(tId).getCurrentTapes()) {
+                    currentTapes.add(tape.clone());
+                }
+                //next.addAll(threadTransition.get(0).getNext());
 
-            for (State c : current) {
+                for (State state : current) {
+                    if (isGoalState(state.getState())){
+                        return current;
+                    }
+                }
+/*
+                for (State state : current) {
+                    if (isGoalState(state.getState())) {
+                        return current;
+                    }
+                }
+*/
                 setFalseBooleanArray(canDoTransition);
-                setNullTapeTransition(tapes);
-                System.out.print("current = ");
-                for (Tape tape : tapes) {
-                    for (Transition tTransition : tape.getTransitions()) {
-                        for (int i = 0 ; i < transitionNumber ; i++) {
-                            if (i == tTransition.getTransitionNumber()) {
-                                System.out.println("primeiro");
-                                if (c.getState().equals(tTransition.getOriginState().getState())) {
-                                    System.out.println("segundo");
-                                    if (tTransition.getOldSymbol().equals(tape.getTape().get(tape.getCurrentPosition()))) {
-                                        System.out.println("terceiro " + i + " " + tape.getTapeNumber());
-                                        tape.setActualTransition(tTransition);
-                                        canDoTransition.set(tape.getTapeNumber(), true);
+                System.out.println("--- " + current.size() + " ---");
+                for (State c : current) {
+                    System.out.print("current = " + c.getState() + "\n");
+                    for (int i = 0 ; i < transitionNumber ; i++) {
+                        setNullTapeTransition(threadTransition.get(tId).getCurrentTapes());
+                        setFalseBooleanArray(canDoTransition);
+                        for (Tape tape : threadTransition.get(tId).getCurrentTapes()) {
+                        for (Transition tTransition : tape.getTransitions()) {
+                            if (tape.getSize() > maxTapeSize) {
+                                return current;
+                            }
+                            //for (int i = 0; i < transitionNumber; i++) {
+                                if (i == tTransition.getTransitionNumber()) {
+                                    //System.out.println("primeiro");
+                                    if (c.getState().equals(tTransition.getOriginState().getState())) {
+                                        //System.out.println("segundo");
+                                        if (tTransition.getOldSymbol().equals(tape.getTape().get(tape.getCurrentPosition()))) {
+                                            //System.out.println("terceiro " + i + " " + tape.getTapeNumber());
+                                            tape.setActualTransition(tTransition);
+                                            canDoTransition.set(tape.getTapeNumber(), true);
 
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (checkBooleanArray(canDoTransition)) {
-                        if (!next.contains(tapes.get(0).getActualTransition().getDestinyState())) {
-                            System.out.println("added " + tapes.get(0).getActualTransition().getDestinyState().getState());
-                            next.add(tapes.get(0).getActualTransition().getDestinyState());
-                        }
-                        System.out.println("Estado atual: " + tapes.get(0).getActualTransition().getOriginState().getState() + " | Estado destino: " + tapes.get(0).getActualTransition().getDestinyState().getState());
-                        for (Tape taps : tapes) {
-                            taps.write(taps.getActualTransition().getNewSymbol(), taps.getActualTransition().getMove());
+                        if (checkBooleanArray(canDoTransition)) {
+                            if (!next.contains(threadTransition.get(tId).getCurrentTapes().get(0).getActualTransition().getDestinyState())) {
+                                System.out.println("added " + threadTransition.get(tId).getCurrentTapes().get(0).getActualTransition().getDestinyState().getState());
+                                next.add(threadTransition.get(tId).getCurrentTapes().get(0).getActualTransition().getDestinyState());
+                            }
+                            System.out.println("Thread: " + threadTransition.get(tId).getCurrent().get(0).getState() + " " + threadTransition.get(tId).getCurrentTapes().size());
+                            System.out.println("Estado atual: " + threadTransition.get(tId).getCurrentTapes().get(0).getActualTransition().getOriginState().getState() + " | Estado destino: " + threadTransition.get(tId).getCurrentTapes().get(0).getActualTransition().getDestinyState().getState());
+                            List<Tape> transitionTapes = new ArrayList<Tape>();
+                            for (Tape t : threadTransition.get(tId).getCurrentTapes()) {
+                                transitionTapes.add(t.clone());
+                            }
+                            for (Tape taps : transitionTapes) {
+                                taps.write(taps.getActualTransition().getNewSymbol(), taps.getActualTransition().getMove());
+                                System.out.println("***********************************************************************");
+                                System.out.println("Estado atual: " + taps.getActualTransition().getOriginState().getState() + " Estado destino: " + taps.getActualTransition().getDestinyState().getState());
+                                System.out.println("Fita [" + taps.getTapeNumber() + "] | Simbolo antigo: " + taps.getActualTransition().getOldSymbol() + " | Símbolo novo: " + taps.getActualTransition().getNewSymbol() + " | Movimento: " + taps.getActualTransition().getMove());
+                                taps.printTape();
+                            }
                             System.out.println("***********************************************************************");
-                            System.out.println("Fita [" + taps.getTapeNumber() + "] | Simbolo antigo: " + taps.getActualTransition().getOldSymbol() + " | Símbolo novo: " + taps.getActualTransition().getNewSymbol() + " | Movimento: " + taps.getActualTransition().getMove());
-                            taps.printTape();
-                        }
-                        System.out.println("***********************************************************************");
-                        System.out.println("Current States: ");
-                        for (State sta : current) {
-                            System.out.println(sta.getState());
-                        }
-                        System.out.println("Next States: ");
-                        for (State sta : next) {
-                            System.out.println(sta.getState());
+                            System.out.println("Current States: ");
+                            for (State sta : current) {
+                                System.out.println(sta.getState());
+                            }
+                            System.out.println("Next States: ");
+                            for (State sta : next) {
+                                System.out.println(sta.getState());
+                            }
+                            setFalseBooleanArray(canDoTransition);
+                            setNullTapeTransition(threadTransition.get(tId).getCurrentTapes());
+
+                            ArrayList<State> nexts = new ArrayList<State>();
+                            ArrayList<Tape> currentTapesAux = new ArrayList<Tape>();
+
+                            for (State n : next) {
+                                nexts.add(n.clone());
+                                System.out.println("ADDED " + n.getState());
+                            }
+                            for (Tape t : transitionTapes) {
+                                currentTapesAux.add(t.clone());
+                            }
+                            threadTransition.add(new ThreadTransition(nexts, null, currentTapesAux, threadTransition.size() - 1));
+                            if (next.isEmpty()) {
+                                return current;
+                            }
+                            next.clear();
                         }
                     }
                 }
+                //current.clear();
+                //currentTapes.clear();
+                threadTransition.remove(tId);
             }
-            System.out.println("Next States: ");
-            for (State sta : next) {
-                System.out.println(sta.getState());
-            }
-
-            if (next.isEmpty()) {
-                return current;
-            }
-            current.clear();
-            current.addAll(next);
-            next.clear();
+        }
+        if (threadTransition.isEmpty()) {
+            return current;
         }
         return current;
     }
@@ -443,5 +514,12 @@ public class TuringMachine {
         for (Tape tape : t) {
             tape.setActualTransition(null);
         }
+    }
+
+    public boolean checkDeadlock() {
+        if (cycle > maxCycles) {
+            return true;
+        }
+        return false;
     }
 }
