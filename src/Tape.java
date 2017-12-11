@@ -38,13 +38,10 @@ public class Tape implements Cloneable {
     public void write(String symbol, String move) {
         symbol = symbol.trim();
         move = move.trim();
-        System.out.println("Fita: " + tapeNumber);
-        System.out.println(currentPosition);
 
         if (move.equals("L")) {
             if (currentPosition == 0) {
                 tape.add(blankSymbol);
-                System.out.println("TAPE SIZE: " + tape.size());
                 reallocateTape(tape);
             }
             tape.set(currentPosition, symbol);
@@ -58,8 +55,6 @@ public class Tape implements Cloneable {
         } else if (move.equals("S")) {
             tape.set(currentPosition, symbol);
         }
-
-        System.out.println(currentPosition);
     }
 
     private void reallocateTape(ArrayList<String> tape) {
