@@ -29,28 +29,32 @@ public class Tape {
     public void write(String symbol, String move) {
         symbol = symbol.trim();
         move = move.trim();
+        System.out.println("Fita: " + tapeNumber);
+        System.out.println(currentPosition);
 
         if (move.equals("L")) {
             if (currentPosition == 0) {
                 tape.add(blankSymbol);
+                System.out.println("TAPE SIZE: " + tape.size());
                 reallocateTape(tape);
             }
             tape.set(currentPosition, symbol);
             currentPosition--;
         } else if (move.equals("R")) {
-            if (currentPosition == tape.size()) {
+            if (currentPosition == tape.size() - 1) {
                 tape.add(blankSymbol);
             }
-
             tape.set(currentPosition, symbol);
             currentPosition++;
         } else if (move.equals("S")) {
             tape.set(currentPosition, symbol);
         }
+
+        System.out.println(currentPosition);
     }
 
     private void reallocateTape(ArrayList<String> tape) {
-        for (int i = tape.size() ; i > 0 ; i++) {
+        for (int i = tape.size() - 1 ; i > 0 ; i--) {
             tape.set(i, tape.get(i - 1));
         }
         tape.set(0, blankSymbol);
@@ -61,9 +65,9 @@ public class Tape {
         System.out.println("Posição atual: " + currentPosition);
         for (int i = 0 ; i < tape.size(); i++) {
             if (i == 0) {
-                System.out.println("[" + tape.get(i));
+                System.out.print("[" + tape.get(i));
             } else {
-                System.out.println(", " + tape.get(i));
+                System.out.print(", " + tape.get(i));
             }
         }
         System.out.println("]");
@@ -134,6 +138,10 @@ public class Tape {
 
     public void setActualTransition(Transition actualTransition) {
         this.actualTransition = actualTransition;
+    }
+
+    public int getSize() {
+        return tape.size();
     }
 
 }

@@ -7,15 +7,17 @@ public class Transition {
     private String oldSymbol;
     private String newSymbol;
     private String move;
+    private int transitionNumber;
     private int tapeNumber;
 
-    public Transition(State originState, State destinyState, String oldSymbol, String newSymbol, String move, int tapeNumber) {
+    public Transition(State originState, State destinyState, String oldSymbol, String newSymbol, String move, int tapeNumber, int transitionNumber) {
         this.originState = originState;
         this.destinyState = destinyState;
         this.oldSymbol = oldSymbol;
         this.newSymbol = newSymbol;
         this.move = move;
         this.tapeNumber = tapeNumber;
+        this.transitionNumber = transitionNumber;
     }
 
     public void print() {
@@ -60,5 +62,31 @@ public class Transition {
 
     public void setMove(String move) {
         this.move = move;
+    }
+
+    public int getTapeNumber() {
+        return tapeNumber;
+    }
+
+    public void setTapeNumber(int tapeNumber) {
+        this.tapeNumber = tapeNumber;
+    }
+
+    public int getTransitionNumber() {
+        return transitionNumber;
+    }
+
+    public void setTransitionNumber(int transitionNumber) {
+        this.transitionNumber = transitionNumber;
+    }
+
+    public void printTransition() {;
+        System.out.println("tape: " + this.getTapeNumber());
+        System.out.println("oldSymbol: " + this.getOldSymbol());
+        System.out.println("newSymbol: " + this.getNewSymbol());
+        System.out.println("originState: " + this.getOriginState().getState());
+        System.out.println("destinyState: " + this.getDestinyState().getState());
+        System.out.println("move: " + this.getMove());
+        System.out.println();
     }
 }

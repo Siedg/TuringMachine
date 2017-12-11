@@ -9,6 +9,7 @@ public class State {
     private List<Transition> transitions;
     private boolean isInitial;
     private boolean isGoal;
+    private List<Tape> currentTape;
 
     public State(String state, boolean isInitial, boolean isGoal) {
         this.state = state;
@@ -75,5 +76,21 @@ public class State {
 
     public void setFinal(boolean goal) {
         this.isGoal = isGoal;
+    }
+
+    public List<Tape> getCurrentTape() {
+        return currentTape;
+    }
+
+    public void setCurrentTape(List<Tape> currentTape) {
+        this.currentTape = currentTape;
+    }
+
+    public void setTape(int index, Tape tape) {
+        this.currentTape.set(index, tape);
+    }
+
+    public Tape getTape(int index) {
+        return this.currentTape.get(index);
     }
 }
